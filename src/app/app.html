@@ -1,0 +1,60 @@
+﻿<router-outlet />
+<main class="workspace">
+  <header class="page-header">
+    <span class="brand"><span class="brand-mark" aria-hidden="true">s.</span> signalements.</span>
+    <span class="connection" [class.offline]="!enLigne()" role="status">
+      <span class="dot" aria-hidden="true"></span>{{ enLigne() ? 'Connexion disponible' : 'Hors connexion' }}
+    </span>
+  </header>
+  <section class="intro" aria-labelledby="page-title">
+    <p class="eyebrow">UN PROBLÈME ? FAITES-LE SAVOIR.</p>
+    <h1 id="page-title">Chaque signalement<br>compte<span>.</span></h1>
+    <p>Décrivez ce que vous avez constaté. Votre signalement reste enregistré sur cet appareil jusqu’à son envoi.</p>
+  </section>
+  @if (!enLigne()) {
+    <p class="notice" role="status"><strong>Vous êtes hors connexion.</strong> Vous pouvez enregistrer votre signalement. L’envoi sera réessayé au retour de la connexion.</p>
+  }
+  <div class="content-grid">
+    <section class="form-card" aria-labelledby="form-title">
+      <div class="card-heading">
+        <span class="step" aria-hidden="true">01</span>
+        <div><h2 id="form-title">Nouveau signalement</h2><p>Quelques mots pour nous aider à comprendre.</p></div>
+      </div>
+      <form (submit)="$event.preventDefault(); enregistrer(description.value)">
+        <label for="description">Que souhaitez-vous signaler ? <span>(obligatoire)</span></label>
+        <p class="hint" id="description-hint">Précisez le lieu, le problème rencontré et les détails utiles.</p>
+        <textarea id="description" [formControl]="description" aria-describedby="description-hint" rows="7" required
+          placeholder="Par exemple : un éclairage défectueux à l’entrée du bâtiment…"></textarea>
+        <div class="form-footer">
+          <p class="local-note">↳ Enregistré sur cet appareil avant l’envoi</p>
+          <button class="primary-button" type="submit" [disabled]="description.invalid || !!enAttente() || sauvegardeEnCours()">Enregistrer <span aria-hidden="true">↗</span></button>
+        </div>
+        @if (enAttente()) {
+          <p class="blocked-hint">Vous pourrez créer un nouveau signalement après l’envoi de celui en attente.</p>
+        }
+      </form>
+    </section>
+    <aside class="tracking-card" aria-labelledby="tracking-title">
+      <div class="tracking-heading"><span class="eyebrow">LE SUIVI</span><span aria-hidden="true">↗</span></div>
+      <h2 id="tracking-title">Votre signalement,<br>en toute simplicité.</h2>
+      <div class="tracking-status" role="status" aria-live="polite" aria-atomic="true">
+        @if (sauvegardeEnCours()) {
+          <span class="state-label"><span class="spinner" aria-hidden="true"></span> Envoi en cours</span>
+          <p>Votre signalement est en cours de synchronisation.</p>
+        } @else if (enAttente()) {
+          <span class="state-label pending"><span class="dot" aria-hidden="true"></span> En attente d’envoi</span>
+          <p>Votre signalement est conservé sur cet appareil. Il n’a pas encore été envoyé.</p>
+        } @else {
+          <span class="state-label"><span class="dot" aria-hidden="true"></span> Aucun envoi en attente</span>
+          <p>Tout est prêt pour votre prochain signalement.</p>
+        }
+      </div>
+      @if (enAttente()) {
+        <div class="saved-report"><h3>Votre message</h3><p>{{ enAttente() }}</p></div>
+        <button class="retry-button" type="button" (click)="synchroniser()" [disabled]="!enLigne() || sauvegardeEnCours()">Réessayer l’envoi <span aria-hidden="true">↗</span></button>
+      }
+      <p class="tracking-note">Une connexion est nécessaire pour transmettre votre message.</p>
+    </aside>
+  </div>
+  <footer>Un geste simple. Une information utile.</footer>
+</main>
